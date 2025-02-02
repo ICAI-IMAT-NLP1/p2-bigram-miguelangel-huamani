@@ -28,9 +28,16 @@ def load_and_preprocess_data(
     """
     with open(filepath, "r") as file:
         lines: List[str] = file.read().splitlines()
-
+    
+    words = [word for line in lines for word in line.split() if word.isalpha()]
+        
     # TODO
-    bigrams: List[Tuple[str, str]] = None
+    bigrams: List[Tuple[str, str]] = []
+
+    for word in words:  
+        word = start_token+word.lower()+end_token
+        for i in range(len(word)-1):
+            bigrams.append((word[i], word[i+1]))
 
     return bigrams
 
@@ -49,7 +56,12 @@ def char_to_index(alphabet: str, start_token: str, end_token: str) -> Dict[str, 
     """
     # Create a dictionary with start token at the beginning and end token at the end
     # TODO
-    char_to_idx: Dict[str, int] = None
+    char_to_idx: Dict[str, int] = {start_token: 0}
+
+    for i,char in enumerate(alphabet):
+        char_to_idx[char] = i + 1
+
+    char_to_idx[end_token] = len(alphabet) + 1
 
     return char_to_idx
 
@@ -66,7 +78,7 @@ def index_to_char(char_to_index: Dict[str, int]) -> Dict[int, str]:
     """
     # Reverse the char_to_index mapping
     # TODO
-    idx_to_char: Dict[int, str] = None
+    idx_to_char: Dict[int, str] = {idx: char for char, idx in char_to_index.items()}
 
     return idx_to_char
 
@@ -93,10 +105,16 @@ def count_bigrams(
 
     # Initialize a 2D tensor for counting bigrams
     # TODO
-    bigram_counts: torch.Tensor = None
+    bigram_counts: torch.Tensor = torch.zeros((len(char_to_idx), len(char_to_idx)))
 
     # Iterate over each bigram and update the count in the tensor
     # TODO
+    for bigram in bigrams:
+        char_i, char_j = bigram
+        i = char_to_idx[char_i]
+        j = char_to_idx[char_j]
+        
+        bigram_counts[i, j] += 1
 
     return bigram_counts
 
@@ -129,7 +147,7 @@ if __name__ == "__main__":
     file_path: str = "data/nombres_raw.txt"
 
     # Define the alphabet (ensure it covers all characters in your data)
-    alphabet: str = "abcdefghijklmnopqrstuvwxyz "
+    alphabet: str = "abcdefghijklmnñopqrstuvwxyzç"
 
     start_token: str = "-"
     end_token: str = "."
